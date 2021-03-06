@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -e
+set -e
 
 if [ "$1" != "FULL" ]
 then
@@ -8,29 +8,37 @@ else
     opt="7 days ago"
 fi
 
+LIST_FILE="/root/.ip.list.txt"
+LIST_FILE_RAW="${LIST_FILE}.raw"
+LIST_FILE_TMP="${LIST_FILE}.bak"
+
+OLD_COUNT="`fgrep from $LIST_FILE_RAW 2>/dev/null | wc -l 2>/dev/null`"
+
 echo "Finding bad actors"
-time journalctl -u sshd --since="${opt}" | fgrep Failed | fgrep from | egrep -o 'from [0-9\.]*' >> .ip.list.txt
-cat .ip.list.txt | sort -u | cut -f2 -d' ' > .ip.sortu.list.txt
+time journalctl -u sshd --since="${opt}" | fgrep Failed | fgrep from | egrep -o 'from [0-9\.]*' >> $LIST_FILE_RAW
+cat $LIST_FILE_RAW | sort -u | cut -f2 -d' ' > $LIST_FILE
 
 echo "Bouncing firewall"
 systemctl restart firewalld
 
 echo "Adding bad actors"
-for IP in `cat .ip.sortu.list.txt`
+for IP in `cat $LIST_FILE`
 do
     echo "  adding $IP"
-    iptables -w 60 -A IN_public_deny -s $IP -j DROP 2>/dev/null
+    iptables -w 60 -A IN_public_deny -s $IP -j REJECT 2>/dev/null
 done
-
 
 MY_IP=`cat /root/myip.txt`
 echo "Removing my ip $MY_IP"
-iptables -D INPUT -s $MY_IP -j DROP 2>/dev/null
-iptables -D IN_public_deny -s $MY_IP -j DROP 2>/dev/null
+iptables -D INPUT -s $MY_IP -j DROP 2>/dev/null || true
+iptables -D IN_public_deny -s $MY_IP -j DROP 2>/dev/null || true
 
-echo "Added this many bad actors"
-wc -l .ip.sortu.list.txt
+echo "Old count:"
+echo $OLD_COUNT
 
-mv .ip.list.txt .ip.list.txt.bak
-sort -u .ip.list.txt.bak | fgrep -v 'from from' > .ip.list.txt
-rm .ip.list.txt.bak
+echo "New count:"
+wc -l $LIST_FILE | awk '{print $1}'
+
+cp $LIST_FILE_RAW $LIST_FILE_TMP
+sort -u $LIST_FILE_TMP | fgrep -v 'from from' > $LIST_FILE_RAW
+rm $LIST_FILE_TMP
