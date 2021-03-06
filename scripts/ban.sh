@@ -12,7 +12,7 @@ LIST_FILE="/root/.ip.list.txt"
 LIST_FILE_RAW="${LIST_FILE}.raw"
 LIST_FILE_TMP="${LIST_FILE}.bak"
 
-OLD_COUNT="`fgrep from $LIST_FILE_RAW 2>/dev/null | wc -l 2>/dev/null`"
+OLD_COUNT="`fgrep from $LIST_FILE 2>/dev/null | wc -l 2>/dev/null`"
 
 echo "Finding bad actors"
 time journalctl -u sshd --since="${opt}" | fgrep Failed | fgrep from | egrep -o 'from [0-9\.]*' >> $LIST_FILE_RAW
