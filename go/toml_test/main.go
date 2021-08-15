@@ -5,8 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/BurntSushi/toml"
-	containerd_config "github.com/containerd/containerd/services/server/config"
+	"github.com/pelletier/go-toml"
 )
 
 type TestPlugin struct {
@@ -16,22 +15,16 @@ type TestPlugin struct {
 
 func main() {
 	fmt.Println("Hello world")
-
-	var config containerd_config.Config
-
-	_, err := toml.DecodeFile("./config.toml", &config)
+	config, err := toml.LoadFile("./config.toml")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error %s", err)
 	}
 
-	// rewrite the grpc.address
-	config.GRPC.Address = "/foo/bar/baz"
+	add := config.Get("grpc.address")
+	config.Set("grpc.address", fmt.Sprintf("%s.real", add))
 
-	// stash hints to the new stuff in the plugins.footest
-	config.Plugins["footest"] = TestPlugin{
-		Foo: "foo",
-		Bar: "bar",
-	}
+	config.Set("plugins.tanium.real_sock", "fsa")
+	config.Set("plugins.tanium.proxy_sock", "fsa")
 
 	src, err := os.OpenFile("./new.toml", os.O_RDWR, 0644)
 	if err != nil {
@@ -39,5 +32,6 @@ func main() {
 	}
 	defer src.Close()
 
-	toml.NewEncoder(src).Encode(config)
+
+	config.WriteTo(src)
 }

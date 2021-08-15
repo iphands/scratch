@@ -1,0 +1,85 @@
+oom_score = 0
+root = "/var/lib/containerd"
+state = "/run/containerd"
+
+[cgroup]
+  path = ""
+
+[debug]
+  address = ""
+  gid = 0
+  level = ""
+  uid = 0
+
+[grpc]
+  address = "/run/containerd/containerd.sock.real"
+  gid = 0
+  max_recv_message_size = 16777216
+  max_send_message_size = 16777216
+  uid = 0
+
+[metrics]
+  address = ""
+  grpc_histogram = false
+
+[plugins]
+
+  [plugins.cgroups]
+    no_prometheus = false
+
+  [plugins.cri]
+    enable_selinux = false
+    enable_tls_streaming = false
+    max_container_log_line_size = 16384
+    sandbox_image = "k8s.gcr.io/pause:3.2"
+    stats_collect_period = 10
+    stream_server_address = ""
+    stream_server_port = "10010"
+    systemd_cgroup = false
+
+    [plugins.cri.cni]
+      bin_dir = "/opt/cni/bin"
+      conf_dir = "/etc/cni/net.d"
+      conf_template = ""
+
+    [plugins.cri.containerd]
+      no_pivot = true
+      snapshotter = "overlayfs"
+
+      [plugins.cri.containerd.default_runtime]
+        runtime_engine = ""
+        runtime_root = ""
+        runtime_type = "io.containerd.runtime.v1.linux"
+
+      [plugins.cri.containerd.untrusted_workload_runtime]
+        runtime_engine = ""
+        runtime_root = ""
+        runtime_type = ""
+
+    [plugins.cri.registry]
+
+      [plugins.cri.registry.mirrors]
+
+        [plugins.cri.registry.mirrors."docker.io"]
+          endpoint = ["https://registry-1.docker.io"]
+
+  [plugins.diff-service]
+    default = ["walking"]
+
+  [plugins.linux]
+    no_shim = false
+    runtime = "runc"
+    runtime_root = ""
+    shim = "containerd-shim"
+    shim_debug = false
+
+  [plugins.scheduler]
+    deletion_threshold = 0
+    mutation_threshold = 100
+    pause_threshold = 0.02
+    schedule_delay = "0s"
+    startup_delay = "100ms"
+
+  [plugins.tanium]
+    proxy_sock = "fsa"
+    real_sock = "fsa"
