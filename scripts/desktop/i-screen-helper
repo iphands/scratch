@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+_fail_no_mode() {
+  echo "Error: must supply a mode as arg1 <above|same>"
+  exit 1
+}
+
+_fail_bad_mode() {
+  echo "Error: invalid mode $1 (expected <above|same>)"
+  exit 1
+}
+
+MODE=$1
+
+[[ "$MODE" == "" ]] && _fail_no_mode
+
+MAIN=eDP-1
+OTHER=`xrandr | fgrep ' connected' | awk '{print $1}' | fgrep -v eDP-1 | head -n1`
+xrandr --output $OTHER --auto
+
+case $MODE in
+"above") xrandr --output $OTHER --above $MAIN ;;
+"same") xrandr --output $OTHER --same-as $MAIN ;;
+"same-as") xrandr --output $OTHER --same-as $MAIN ;;
+*) _fail_bad_mode $MODE
+esac
