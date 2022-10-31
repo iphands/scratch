@@ -1,12 +1,14 @@
 #!/bin/bash
+MODES="above|work|same|right|home|single"
+
 set -e
 _fail_no_mode() {
-  echo "Error: must supply a mode as arg1 <above|same>"
+  echo "Error: must supply a mode as arg1 <$MODES>"
   exit 1
 }
 
 _fail_bad_mode() {
-  echo "Error: invalid mode $1 (expected <above|same>)"
+  echo "Error: invalid mode $1 (expected <$MODES>)"
   exit 1
 }
 
@@ -18,9 +20,31 @@ MAIN=eDP-1
 OTHER=`xrandr | fgrep ' connected' | awk '{print $1}' | fgrep -v eDP-1 | head -n1`
 xrandr --output $OTHER --auto
 
+killall randy 2>/dev/null || true
+
 case $MODE in
-"above") xrandr --output $OTHER --above $MAIN ;;
-"same") xrandr --output $OTHER --same-as $MAIN ;;
-"same-as") xrandr --output $OTHER --same-as $MAIN ;;
+"above" | "work")
+  xrandr --output $OTHER --above $MAIN
+  /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop.yml &
+  ;;
+"same" | "same-as")
+  xrandr --output $OTHER --same-as $MAIN
+  /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop.yml &
+  ;;
+"home")
+  xrandr --output $OTHER --right-of $MAIN
+  xrandr --output $OTHER --pos 1920x-1080
+  /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop_docked.yml &
+  ;;
+"single")
+  xrandr --auto
+  /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop.yml &
+  ;;
+
 *) _fail_bad_mode $MODE
 esac
+
+sleep 0.250
+fluxbox-remote restart
+sleep 0.250
+feh --bg-center ~/Documents/tux.png
