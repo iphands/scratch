@@ -1,0 +1,5 @@
+evdev==1.6.0
+pynput==1.7.6
+python-xlib==0.33
+PyUserInput==0.1.11
+six==1.16.0
