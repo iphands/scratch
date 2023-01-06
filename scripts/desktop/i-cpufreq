@@ -2,7 +2,8 @@
 
 for var in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 do
+  old="`cat $var`"
   echo "$1" > $var
-  echo -n "$var: "
-  cat $var
+  new="`cat $var`"
+  echo "$var: $old -> $new"
 done
