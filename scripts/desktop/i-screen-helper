@@ -47,4 +47,5 @@ esac
 sleep 0.250
 fluxbox-remote restart
 sleep 0.250
-feh --bg-center ~/Documents/tux.png
+fbsetbg -c ~/Documents/tux.png
+
