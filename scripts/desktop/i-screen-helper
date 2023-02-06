@@ -26,28 +26,31 @@ _main() {
   [[ "$2" == "from_auto" ]] && echo "Auto detected mode \"$MODE\""
 
   MAIN=eDP-1
+  set +e
   OTHER=`xrandr | fgrep ' connected' | awk '{print $1}' | fgrep -v eDP-1 | head -n1`
   [[ "$OTHER" != "" ]] && xrandr --output $OTHER --auto
+  set -e
 
   killall randy 2>/dev/null || true
 
   case $MODE in
   "above" | "work")
     xrandr --output $OTHER --above $MAIN
-    /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop.yml &
+    /home/iphands/prog/randy/target/release/randy ~/prog/randy/config/my_laptop.yml &
     ;;
   "same" | "same-as")
     xrandr --output $OTHER --same-as $MAIN
-    /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop.yml &
+    /home/iphands/prog/randy/target/release/randy ~/prog/randy/config/my_laptop.yml &
     ;;
   "home")
     xrandr --output $OTHER --right-of $MAIN
     xrandr --output $OTHER --pos 1920x-1080
-    /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop_docked.yml &
+    /home/iphands/prog/randy/target/release/randy ~/prog/randy/config/my_laptop_docked.yml &
     ;;
   "single")
+    xrandr --auto
     xrandr --output $MAIN --auto
-    /home/iphands/prog/randy/target/release/randy ./prog/randy/config/my_laptop.yml &
+    /home/iphands/prog/randy/target/release/randy ~/prog/randy/config/my_laptop.yml &
     ;;
 
   *) _fail_bad_mode $MODE
@@ -59,5 +62,5 @@ _main() {
   fbsetbg -c ~/Documents/tux.png
 }
 
-_do_auto $1
+[[ "$1" == "" ]] && _do_auto $1
 _main $1
