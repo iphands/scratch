@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 source ~/.config/my-rtl.sh
+[[ "$RTL_BASE_FOLDER" == "" ]] && {
+  echo "Could not find RTL_BASE_FOLDER in ~/.config/my-rtl.sh! Exiting"
+  exit 1
+}
 
 get_dev() {
   rtl_test -d 9999 2>&1 | fgrep $1 | cut -d: -f1 | awk '{print $1}'
@@ -8,6 +12,11 @@ get_dev() {
 
 usage() {
   echo "rtl-tester test|prod <name> <serial>"
+}
+
+fail_influx() {
+  echo "Could not find $1! You must export this in ~/.config/my-rtl.sh"
+  exit 1
 }
 
 if [[ "$1" != "prod" && "$1" != "test" ]]
@@ -33,11 +42,6 @@ FOLDER="$RTL_BASE_FOLDER/$NAME"
 DEV_SER=$3
 DEV=`get_dev $DEV_SER`
 TIMEOUT=90
-
-function fail_influx() {
-  echo "Could not find $1! You must export this in ~/.config/my-rtl.sh"
-  exit 1
-}
 
 if [[ "$MODE" == "prod" ]]
 then

@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 source ~/.config/my-rtl.sh
+[[ "$RTL_BASE_FOLDER" == "" ]] && {
+  echo "Could not find RTL_BASE_FOLDER in ~/.config/my-rtl.sh! Exiting"
+  exit 1
+}
 
 FOLDER="$RTL_BASE_FOLDER/amr"
 mkdir -p $FOLDER
