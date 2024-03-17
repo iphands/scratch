@@ -15,8 +15,11 @@ FOLDER:  $FOLDER
 set +e
 while true
 do
-  for var in `seq 902.0 0.250 928.5`
+  for var in `seq 902.0 0.400 928.5`
   do
-    ~/go/bin/rtlamr -samplerate 1024k -duration 60s -centerfreq ${var}M 2>&1 | tee -a $FOLDER/test.${var}.log
+    ~/go/bin/rtlamr \
+      -samplerate 2048k \
+      -duration 40s \
+      -centerfreq ${var}M 2>&1 | tee -a $FOLDER/test.${var}.log
   done
 done
