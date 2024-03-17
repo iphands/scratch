@@ -19,7 +19,7 @@ do
   do
     ~/go/bin/rtlamr \
       -samplerate 2048k \
-      -duration 40s \
+      -duration 30s \
       -centerfreq ${var}M 2>&1 | tee -a $FOLDER/test.${var}.log
   done
 done
