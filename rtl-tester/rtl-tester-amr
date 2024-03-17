@@ -15,7 +15,7 @@ FOLDER:  $FOLDER
 set +e
 while true
 do
-  for var in `seq 902.0 0.400 928.5`
+  for var in `seq 902.0 0.500 928.5`
   do
     ~/go/bin/rtlamr \
       -samplerate 2048k \
