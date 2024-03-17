@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+source ~/.config/my-rtl.sh
+
+FOLDER="$RTL_BASE_FOLDER/amr"
+mkdir -p $FOLDER
+echo "
+FOLDER:  $FOLDER
+"
+
+set +e
+while true
+do
+  for var in `seq 902.0 0.250 928.5`
+  do
+    ~/go/bin/rtlamr -samplerate 1024k -duration 60s -centerfreq ${var}M 2>&1 | tee -a $FOLDER/test.${var}.log
+  done
+done

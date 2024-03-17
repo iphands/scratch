@@ -1,0 +1,113 @@
+#!/bin/bash
+set -e
+source ~/.config/my-rtl.sh
+
+get_dev() {
+  rtl_test -d 9999 2>&1 | fgrep $1 | cut -d: -f1 | awk '{print $1}'
+}
+
+usage() {
+  echo "rtl-tester test|prod <name> <serial>"
+}
+
+if [[ "$1" != "prod" && "$1" != "test" ]]
+then
+  usage
+  exit 1
+fi
+
+if [[ "$2" == "" ]]
+then
+  usage
+  exit 1
+fi
+
+[[ "$3" =~ "deadbeef" ]] || {
+  usage
+  exit 1
+}
+
+MODE=$1
+NAME=$2
+FOLDER="$RTL_BASE_FOLDER/$NAME"
+DEV_SER=$3
+DEV=`get_dev $DEV_SER`
+TIMEOUT=90
+
+function fail_influx() {
+  echo "Could not find $1! You must export this in ~/.config/my-rtl.sh"
+  exit 1
+}
+
+if [[ "$MODE" == "prod" ]]
+then
+  [[ "$RTL_INFLUX_TOKEN" == "" ]]  && fail_influx RTL_INFLUX_TOKEN
+  [[ "$RTL_INFLUX_HOST" == "" ]]   && fail_influx RTL_INFLUX_HOST
+  [[ "$RTL_INFLUX_ORG" == "" ]]    && fail_influx RTL_INFLUX_ORG
+  [[ "$RTL_INFLUX_BUCKET" == "" ]] && fail_influx RTL_INFLUX_BUCKET
+fi
+
+if [[ "$FORCE_TIMEOUT" != "" ]]
+then
+  TIMEOUT=$FORCE_TIMEOUT
+fi
+
+if [[ "$FORCE_CHAN" != "" ]]
+then
+  CHAN=$FORCE_CHAN
+else
+  CHAN=434.00
+fi
+
+echo "
+MODE:    $MODE
+NAME:    $NAME
+FOLDER:  $FOLDER
+DEV_SER: $DEV_SER
+DEV:     $DEV
+TIMEOUT: $TIMEOUT
+CHAN:    $CHAN
+"
+
+set +e
+
+if [[ "$MODE" == "prod" ]]
+then
+  echo PROD_MODE
+  gain=0
+  chan=$CHAN
+  out="influx://${RTL_INFLUX_HOST}/api/v2/write?org=${RTL_INFLUX_ORG}&bucket=${RTL_INFLUX_BUCKET},token=${RTL_INFLUX_TOKEN}"
+  rtl_433 \
+    -d $DEV \
+    -s 2048k \
+    -Y autolevel -Y minlevel=-30 -Y magest \
+    -M protocol -M level -M noise \
+    -g $gain \
+    -F log \
+    -F "$out" \
+    -f "${chan}M" 2>&1 | tee -a ${FOLDER}/prod.gain.$gain.freq.$chan.log
+  exit 0
+fi
+
+echo TEST_MODE
+mkdir -p ${FOLDER} || exit 1
+
+while true
+do
+  for chan in `seq 432.0 0.200 435.5` # 434 # 433 434 435
+  do
+    for gain in 0 # `seq 40 48`
+    do
+      sleep 1
+      DEV=`get_dev $DEV_SER`
+      rtl_433 -v \
+	-d $DEV \
+	-s 1024k \
+	-Y autolevel -Y minlevel=-30 -Y magest \
+	-M protocol -M level -M noise \
+	-g $gain \
+	-f "${chan}M" \
+	-T 90 2>&1 | tee -a ${FOLDER}/test.gain.$gain.freq.$chan.log
+    done
+  done
+done
