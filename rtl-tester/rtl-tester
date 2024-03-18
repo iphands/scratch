@@ -83,8 +83,8 @@ then
   out="influx://${RTL_INFLUX_HOST}/api/v2/write?org=${RTL_INFLUX_ORG}&bucket=${RTL_INFLUX_BUCKET},token=${RTL_INFLUX_TOKEN}"
   rtl_433 \
     -d $DEV \
-    -s 2048k \
-    -Y autolevel -Y minlevel=-30 -Y magest \
+    -s 250k \
+    -Y autolevel -Y minlevel=-38 -Y magest \
     -M protocol -M level -M noise \
     -g $gain \
     -F log \
@@ -98,7 +98,8 @@ mkdir -p ${FOLDER} || exit 1
 
 while true
 do
-  for chan in `seq 432.0 0.200 435.5` # 434 # 433 434 435
+  # for chan in `seq 433.500 0.100 435.500` # 434 # 433 434 435
+  for chan in `seq 433.78 0.010 434.200`
   do
     for gain in 0 # `seq 40 48`
     do
@@ -106,12 +107,12 @@ do
       DEV=`get_dev $DEV_SER`
       rtl_433 -v \
 	-d $DEV \
-	-s 1024k \
-	-Y autolevel -Y minlevel=-30 -Y magest \
+	-s 250k \
+	-Y autolevel -Y minlevel=-38 -Y magest \
 	-M protocol -M level -M noise \
 	-g $gain \
 	-f "${chan}M" \
-	-T 90 2>&1 | tee -a ${FOLDER}/test.gain.$gain.freq.$chan.log
+	-T 70 2>&1 | tee -a ${FOLDER}/test.gain.$gain.freq.$chan.log
     done
   done
 done
